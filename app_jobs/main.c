@@ -174,7 +174,7 @@ int main()
 
 
     // INICIO DO PROCESSO DE MONTAGEM DA ARVORE B de empresa.
-    arqem2 = fopen("empresas2.bin", "rb");
+    arqemp2 = fopen("empresas2.bin", "rb");
 
     // Verificando se o arquivo foi aberto corretamente
     if (arqemp2 == NULL) {
@@ -185,7 +185,7 @@ int main()
     // Lendo os dados do arquivo binário e exibindo-os
     while (fread(&emp, sizeof(EMPRESA), 1, arqemp2) == 1) {
         ch.key = str_to_inteiro(emp.nome);
-        ch.pos = emp.id_emp // id seria posicao(indice) da empresao no arquivo empresa?sim
+        ch.pos = emp.id_emp; // id seria posicao(indice) da empresao no arquivo empresa?sim
         ch.encontrado = 0;
         insert(&root_emp, ch);
     }
@@ -207,7 +207,7 @@ int main()
     // Lendo os dados do arquivo binário e exibindo-os
     while (fread(&carg, sizeof(CARGO), 1, arqcargos2) == 1) {
         ch.key = str_to_inteiro(carg.nome);
-        ch.pos = carg.id_cargo // id seria posicao(indice) da cargo no arquivo empresa?sim
+        ch.pos = carg.id_cargo; // id seria posicao(indice) da cargo no arquivo empresa?sim
         ch.encontrado = 0;
         insert(&root_cargos, ch);
     }
@@ -540,17 +540,17 @@ int main()
             printf("(2) Localizacao\n");
             scanf("%d", &op_clas);
         }
-        while(op_clas!=1 &&op_clas!=2);
+        while(op_clas!=1 && op_clas!=2);
         system("cls");
         getchar();
 
         if(op_clas==1)
         {
-
+            classifica_por_industria(root_emp);
         }
         else
         {
-
+            classifica_por_localizacao(root_cargos); 
         }
         break;
 
@@ -790,4 +790,111 @@ int str_to_inteiro(char str[]){
     return soma_ascii
 }
 
+// funcao utilizada para comparar as chaves de industria das empresas
+int compare(const void *a, const void *b) 
+{
+    EMPRESA *emp1 = (EMPRESA *)a;
+    EMPRESA *emp2 = (EMPRESA *)b;
+    return strcmp(emp1->id_est_ind, emp2->id_est_ind);
+}
 
+// funcao que classifica as empresas por industria
+void classifica_por_industria(Node* root) {
+    EMPRESA *empresas = extraiDados(root); // cria array de empresas e preenche com os nodos da arvore
+    int numEmpresas = countNodes(root);
+
+    qsort(empresas, numEmpresas, sizeof(EMPRESA), compare); // ordena o array de empresas
+
+    for (int i = 0; i < numEmpresas; i++) { // imprime o array de empresas ordenado
+        printf("%s: %s\n", empresas[i].nome, empresas[i].id_est_ind); // acho que nao ta certo
+    }
+
+    free(empresas);
+}
+
+// funcao que percorre e preenche um array de empresas com os nodos da arvore
+void traverse_and_fill(Node* root, EMPRESA *empresas, int *indice) {
+    if (root == NULL) {
+        return;
+    }
+
+    for (int i = 0; i < root->num_keys; i++) {
+        // copia os dados no nodo para o array
+        traverse_and_fill(root->children[i], empresas, indice);
+        empresas[*indice] = *(root->registros[i]);
+        (*indice)++;
+
+        traverse_and_fill(root->children[i + 1], empresas, indice); // vai para o filho a direita
+    }
+}
+
+// extrai os dados da arvore para preencher o array de empresas
+EMPRESA* extraiDados(Node* root) {
+    int numEmpresas = countNodes(root);
+    EMPRESA *empresas = (EMPRESA *)malloc(numEmpresas * sizeof(EMPRESA));
+    int indice = 0;
+
+    traverse_and_fill(root, empresas, &indice);
+
+    return empresas;
+}
+
+// conta o numero de nodos na arvore
+int countNodes(Node* root) {
+    if (root == NULL) {
+        return 0;
+    }
+
+    int count = 1;
+    for (int i = 0; i <= root->num_keys; i++) {
+        count += countNodes(root->children[i]);
+    }
+
+    return count;
+}
+
+int compare_localizacao(const void *a, const void *b) 
+{
+    CARGO *cargo1 = (CARGO *)a;
+    CARGO *cargo2 = (CARGO *)b;
+    return strcmp(cargo1->id_est_loc, cargo2->id_est_loc);
+}
+
+void classifica_por_localizacao(Node* root) {
+    CARGO *cargos = extraiDados(root); // cria array de cargos e preenche com os nodos da arvore
+    int numCargos = countNodes(root);
+
+    qsort(cargos, numCargos, sizeof(CARGO), compare_localizacao); // ordena o array de cargos
+
+    for (int i = 0; i < numCargos; i++) { // imprime o array de cargos ordenado
+        printf("%s: %s\n", cargos[i].nome, cargos[i].id_est_loc); // acho que tambem nao ta certo
+    }
+
+    free(cargos);
+}
+
+CARGO* extraiDados(Node* root) {
+    int numCargos = countNodes(root);
+    CARGO *cargos = (CARGO *)malloc(numCargos * sizeof(CARGO));
+    int indice = 0;
+
+    traverse_and_fill(root, cargos, &indice);
+
+    return cargos;
+}
+
+// funcao que percorre e preenche um array de cargos com os nodos da arvore
+void traverse_and_fill_loc(Node* root, CARGO *cargos, int *indice) {
+    if (root == NULL) {
+        return;
+    }
+
+    for (int i = 0; i < root->num_keys; i++) {
+        // copia os dados no nodo para o array
+        traverse_and_fill(root->children[i], cargos, indice);
+        cargos[*indice] = *(root->registros[i]);
+        (*indice)++;
+
+        traverse_and_fill(root->children[i + 1], cargos, indice); // vai para o filho a direita
+    }
+}
