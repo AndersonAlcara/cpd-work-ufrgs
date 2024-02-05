@@ -271,7 +271,7 @@ int main()
             FILE* arqof = fopen("ofertas.bin", "rb");
             FILE* arqcarg = fopen("cargos2.bin", "rb");
             FILE* arqloc = fopen("localizacao2.bin", "rb");
-            FILE* arqcrit = fopen("", "rb");
+            FILE* arqcrit = fopen("criterios.bin", "rb");
 
             //faz um "searchTree" para a tree de empresa e retorna a posicao de memoria dessa empresa
             resultado = search(emptree, key_busca); // nao sei se isso funciona
@@ -546,12 +546,82 @@ int main()
 
         if(op_clas==1)
         {
-            classifica_por_industria(root_emp);
+            FILE* arqemp = fopen("empresas2.bin", "rb");
+            FILE* arqind = fopen("industria2.bin", "rb");
+            FILE* arqof = fopen("ofertas.bin", "rb");
+            FILE* arqcarg = fopen("cargos2.bin", "rb");
+            FILE* arqloc = fopen("localizacao2.bin", "rb");
+            FILE* arqcrit = fopen("criterios.bin", "rb");
+
+            fseek(arqind, 0, SEEK_END);
+            int num_industrias = ftell(arqind) / sizeof(INDUSTRIA); // numero de industrias no arquivo
+
+            fseek(arqind, 0, SEEK_SET); // move o ponteiro para o inicio do arquivo
+            
+            INDUSTRIA* industria_e_chave = malloc(num_industrias * sizeof(INDUSTRIA));
+
+            for (int i = 0; i < num_industrias; i++) { // preenche o array com nome da industria e chave a partir do arquivo binario
+                {
+                    fread(industria_e_chave[i].nome, sizeof(industria_e_chave[i].nome), 1, arqind);
+                    fread(&industria_e_chave[i].id_ind, sizeof(industria_e_chave[i].id_ind), 1, arqind);
+                }
+            }
+        
+            qsort(industria_e_chave, num_industrias, sizeof(INDUSTRIA), compara_industrias); // ordena (nesse caso, ordem alfabetica)
+
+            for (int i = 0; i < num_industrias; i++) { // imprime cada vaga
+                
+            }
+
+            fclose(arqemp);
+            fclose(arqind);
+            fclose(arqof);
+            fclose(arqcarg);
+            fclose(arqloc);
+            fclose(arqcrit);
+
+            free(industria_e_chave);
+        
         }
         else
         {
-            classifica_por_localizacao(root_cargos); 
+            FILE* arqemp = fopen("empresas2.bin", "rb");
+            FILE* arqind = fopen("industria2.bin", "rb");
+            FILE* arqof = fopen("ofertas.bin", "rb");
+            FILE* arqcarg = fopen("cargos2.bin", "rb");
+            FILE* arqloc = fopen("localizacao2.bin", "rb");
+            FILE* arqcrit = fopen("criterios.bin", "rb");
+
+            fseek(arqloc, 0, SEEK_END);
+            int num_locs = ftell(arqloc) / sizeof(LOCALIZACAO); // numero de industrias no arquivo
+
+            fseek(arqloc, 0, SEEK_SET); // move o ponteiro para o inicio do arquivo
+
+            LOCALIZACAO* loc_e_chave = malloc(num_locs * sizeof(LOCALIZACAO));
+
+            for (int i = 0; i < num_locs; i++) { // preenche o array com nome da industria e chave a partir do arquivo binario
+                {
+                    fread(loc_e_chave[i].nome, sizeof(loc_e_chave[i].nome), 1, arqloc);
+                    fread(&loc_e_chave[i].id_local, sizeof(loc_e_chave[i].id_local), 1, arqloc);
+                }
+            }
+        
+            qsort(loc_e_chave, num_locs, sizeof(LOCALIZACAO), compara_locs); // ordena em ordem alfabetica
+            
+            for (int i = 0; i < num_locs; i++) { // imprime cada vaga
+
+            }
+
+            fclose(arqemp);
+            fclose(arqind);
+            fclose(arqof);
+            fclose(arqcarg);
+            fclose(arqloc);
+            fclose(arqcrit);
+
+            free(loc_e_chave);
         }
+
         break;
 
 
@@ -791,11 +861,18 @@ int str_to_inteiro(char str[]){
 }
 
 // funcao utilizada para comparar as chaves de industria das empresas
-int compare(const void *a, const void *b) 
+int compara_industrias(const void *a, const void *b) 
 {
-    EMPRESA *emp1 = (EMPRESA *)a;
-    EMPRESA *emp2 = (EMPRESA *)b;
-    return strcmp(emp1->id_est_ind, emp2->id_est_ind);
+    INDUSTRIA* indA = (INDUSTRIA*)a;
+    INDUSTRIA* indB = (INDUSTRIA*)b;
+    return strcmp(indA->nome, indB->nome); // compara em ordem alfabetica
+}
+
+int compara_industrias_contra(const void *a, const void *b) 
+{
+    INDUSTRIA* indA = (INDUSTRIA*)a;
+    INDUSTRIA* indB = (INDUSTRIA*)b;
+    return strcmp(indB->nome, indA->nome); // compara em ordem contra alfabetica
 }
 
 // funcao que classifica as empresas por industria
@@ -853,11 +930,16 @@ int countNodes(Node* root) {
     return count;
 }
 
-int compare_localizacao(const void *a, const void *b) 
-{
-    CARGO *cargo1 = (CARGO *)a;
-    CARGO *cargo2 = (CARGO *)b;
-    return strcmp(cargo1->id_est_loc, cargo2->id_est_loc);
+int compara_locs(const void *a, const void *b) {
+    LOCALIZACAO* locA = (LOCALIZACAO*)a;
+    LOCALIZACAO* locB = (LOCALIZACAO*)b;
+    return strcmp(locA->nome, locB->nome); // ordem alfabetica
+}
+
+int compara_locs_contra(const void *a, const void *b) {
+    LOCALIZACAO* locA = (LOCALIZACAO*)a;
+    LOCALIZACAO* locB = (LOCALIZACAO*)b;
+    return strcmp(locB->nome, locA->nome); // ordem contra alfabetica
 }
 
 void classifica_por_localizacao(Node* root) {
